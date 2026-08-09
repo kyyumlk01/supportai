@@ -4,6 +4,7 @@ import TrustedCompanies from "../../components/home/TrustedCompanies";
 import FeaturesSection from "../../components/home/FeaturesSection";
 import HowItWorksSection from "../../components/home/HowItWorksSection";
 import PricingSection from "../../components/home/PricingSection";
+import FAQSection from "../../components/home/FAQSection";
 
 function HomePage() {
   return (
@@ -14,6 +15,7 @@ function HomePage() {
       <FeaturesSection />
       <HowItWorksSection />
       <PricingSection />
+      <FAQSection />
     </>
   );
 }
