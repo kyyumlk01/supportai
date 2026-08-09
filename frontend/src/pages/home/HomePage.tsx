@@ -3,6 +3,7 @@ import HeroSection from "../../components/home/HeroSection";
 import TrustedCompanies from "../../components/home/TrustedCompanies";
 import FeaturesSection from "../../components/home/FeaturesSection";
 import HowItWorksSection from "../../components/home/HowItWorksSection";
+import PricingSection from "../../components/home/PricingSection";
 
 function HomePage() {
   return (
@@ -12,6 +13,7 @@ function HomePage() {
       <TrustedCompanies />
       <FeaturesSection />
       <HowItWorksSection />
+      <PricingSection />
     </>
   );
 }
