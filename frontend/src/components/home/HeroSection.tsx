@@ -22,7 +22,7 @@ function HeroSection() {
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
-              href="#get-started"
+              href="#pricing"
               className="inline-flex items-center justify-center rounded-lg bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition-colors hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
             >
               Get Started
@@ -31,7 +31,7 @@ function HeroSection() {
               </svg>
             </a>
             <a
-              href="#watch-demo"
+              href="#how-it-works"
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-cyan-200/40 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
             >
               <span className="flex size-5 items-center justify-center rounded-full border border-cyan-200/60" aria-hidden="true">

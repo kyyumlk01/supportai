@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const navigationLinks = [
-  { label: "Features", to: "/#features" },
-  { label: "Pricing", to: "/#pricing" },
-  { label: "How It Works", to: "/#how-it-works" },
-  { label: "Documentation", to: "/#documentation" },
+  { label: "Features", to: "#features" },
+  { label: "Pricing", to: "#pricing" },
+  { label: "How It Works", to: "#how-it-works" },
+  { label: "Documentation", to: "#documentation" },
 ];
 
 function Navbar() {

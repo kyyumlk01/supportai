@@ -1,7 +1,20 @@
 const footerLinks = {
-  product: ["Features", "Pricing", "How It Works", "Documentation"],
-  company: ["About", "Contact", "Careers"],
-  resources: ["Help Center", "Documentation", "FAQ"],
+  product: [
+    { label: "Features", href: "#features" },
+    { label: "Pricing", href: "#pricing" },
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "Documentation", href: "#documentation", id: "documentation" },
+  ],
+  company: [
+    { label: "About", href: "#" },
+    { label: "Contact", href: "#" },
+    { label: "Careers", href: "#" },
+  ],
+  resources: [
+    { label: "Help Center", href: "#" },
+    { label: "Documentation", href: "#documentation" },
+    { label: "FAQ", href: "#faq" },
+  ],
 };
 
 function Footer() {
@@ -50,7 +63,13 @@ function Footer() {
 
 type FooterLinkGroupProps = {
   heading: string;
-  links: string[];
+  links: FooterLink[];
+};
+
+type FooterLink = {
+  label: string;
+  href: string;
+  id?: string;
 };
 
 function FooterLinkGroup({ heading, links }: FooterLinkGroupProps) {
@@ -59,12 +78,13 @@ function FooterLinkGroup({ heading, links }: FooterLinkGroupProps) {
       <h2 className="text-sm font-semibold text-white">{heading}</h2>
       <ul className="mt-4 space-y-3">
         {links.map((link) => (
-          <li key={link}>
+          <li key={link.label}>
             <a
-              href="#"
+              id={link.id}
+              href={link.href}
               className="text-sm text-slate-400 transition-colors hover:text-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300"
             >
-              {link}
+              {link.label}
             </a>
           </li>
         ))}
