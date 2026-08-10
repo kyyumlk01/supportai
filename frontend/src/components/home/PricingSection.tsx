@@ -93,8 +93,8 @@ function PricingSection() {
                 ))}
               </ul>
 
-              <a
-                href="#get-started"
+              <Link
+                to="/signup"
                 className={`mt-8 inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 ${
                   plan.recommended
                     ? "bg-cyan-400 text-slate-950 shadow-lg shadow-cyan-500/20 hover:bg-cyan-300"
@@ -102,7 +102,7 @@ function PricingSection() {
                 }`}
               >
                 {plan.cta}
-              </a>
+              </Link>
             </article>
           ))}
         </div>
@@ -112,3 +112,4 @@ function PricingSection() {
 }
 
 export default PricingSection;
+import { Link } from "react-router-dom";

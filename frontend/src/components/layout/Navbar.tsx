@@ -45,13 +45,13 @@ function Navbar() {
 
         <div className="hidden items-center gap-4 lg:flex">
           <Link
-            to="/#login"
+            to="/login"
             className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white"
           >
             Login
           </Link>
           <Link
-            to="/#get-started"
+            to="/signup"
             className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
           >
             Get Started
@@ -91,14 +91,14 @@ function Navbar() {
             ))}
             <div className="mt-3 grid grid-cols-2 gap-3 border-t border-white/10 pt-4">
               <Link
-                to="/#login"
+                to="/login"
                 className="rounded-lg border border-white/15 px-3 py-2.5 text-center text-sm font-medium text-slate-200 transition-colors hover:border-white/30 hover:bg-white/10"
                 onClick={closeMobileMenu}
               >
                 Login
               </Link>
               <Link
-                to="/#get-started"
+                to="/signup"
                 className="rounded-lg bg-cyan-400 px-3 py-2.5 text-center text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300"
                 onClick={closeMobileMenu}
               >
