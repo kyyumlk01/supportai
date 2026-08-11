@@ -1,6 +1,38 @@
-import { Link } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const registrationMessage = (location.state as { message?: string } | null)?.message;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      await login(
+        {
+          email: String(formData.get("email") ?? ""),
+          password: String(formData.get("password") ?? ""),
+        },
+        formData.get("remember-me") === "on",
+      );
+      navigate("/", { replace: true });
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : "Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4 py-12 sm:px-6 lg:px-8">
       <div className="absolute inset-x-0 top-0 -z-10 h-[32rem] bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.15),_transparent_50%)]" />
@@ -27,7 +59,10 @@ function LoginPage() {
             <p className="mt-3 text-sm leading-6 text-slate-400">Continue delivering helpful support experiences with your team.</p>
           </div>
 
-          <form className="mt-8 space-y-5" onSubmit={(event) => event.preventDefault()}>
+          {registrationMessage && <p className="mt-6 text-sm text-cyan-300" role="status">{registrationMessage}</p>}
+          {error && <p className="mt-6 text-sm text-rose-300" role="alert">{error}</p>}
+
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit} aria-busy={isSubmitting}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-200">
                 Email
@@ -39,6 +74,7 @@ function LoginPage() {
                 autoComplete="email"
                 required
                 placeholder="you@company.com"
+                disabled={isSubmitting}
                 className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 transition-colors focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300"
               />
               <p className="mt-2 text-xs text-slate-500">Enter the email associated with your account.</p>
@@ -60,6 +96,7 @@ function LoginPage() {
                 autoComplete="current-password"
                 required
                 placeholder="Enter your password"
+                disabled={isSubmitting}
                 className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 transition-colors focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300"
               />
               <p className="mt-2 text-xs text-slate-500">Your password must be at least 8 characters.</p>
@@ -69,6 +106,7 @@ function LoginPage() {
               <input
                 name="remember-me"
                 type="checkbox"
+                disabled={isSubmitting}
                 className="size-4 rounded border-white/20 bg-slate-950 text-cyan-400 focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 focus:ring-offset-slate-900"
               />
               Remember me
@@ -76,9 +114,10 @@ function LoginPage() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex w-full items-center justify-center rounded-lg bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-cyan-500/20 transition-colors hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
             >
-              Log in
+              {isSubmitting ? "Logging in..." : "Log in"}
             </button>
           </form>
 
