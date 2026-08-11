@@ -102,7 +102,7 @@ router.post("/login", async (req, res) => {
     if (!process.env.JWT_SECRET) {
       return res.status(500).json({
         success: false,
-        message: "Login is temporarily unavailable",
+        message: "Authentication is temporarily unavailable",
       });
     }
 
