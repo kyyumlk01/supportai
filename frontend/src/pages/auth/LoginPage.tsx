@@ -25,7 +25,7 @@ function LoginPage() {
         },
         formData.get("remember-me") === "on",
       );
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "Login failed. Please try again.");
     } finally {
