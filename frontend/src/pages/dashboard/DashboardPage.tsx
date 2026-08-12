@@ -37,6 +37,35 @@ function StatusBadge({ status }: { status: Conversation["status"] }) {
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${colors[status]}`}><span className="size-1.5 rounded-full bg-current" />{status}</span>;
 }
 
+const analyticsTrend = [42, 56, 48, 71, 64, 82, 76];
+
+function AnalyticsView() {
+  const trendPoints = analyticsTrend.map((value, index) => `${(index / (analyticsTrend.length - 1)) * 100},${100 - ((value - 35) / 55) * 82}`).join(" ");
+  const kpis = [
+    { label: "Total conversations", value: "1,284", change: "+12.4%", color: "text-cyan-300" },
+    { label: "Open conversations", value: "38", change: "-8.1%", color: "text-emerald-300" },
+    { label: "Resolved conversations", value: "1,146", change: "+15.2%", color: "text-cyan-300" },
+    { label: "Average response time", value: "8m 24s", change: "-1m 12s", color: "text-emerald-300" },
+    { label: "Customer satisfaction", value: "94.8%", change: "+2.1%", color: "text-cyan-300" },
+  ];
+
+  return <div className="flex-1 overflow-y-auto bg-slate-950/30 p-4 sm:p-6 lg:p-8">
+    <div className="mx-auto max-w-7xl">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">Local mock data</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Support performance</h1><p className="mt-2 text-sm text-slate-400">A seven-day view of your team&apos;s conversation activity.</p></div><button type="button" className="w-fit rounded-lg border border-white/10 bg-slate-900 px-3.5 py-2 text-sm font-medium text-slate-300 hover:border-white/20 hover:text-white">Last 7 days</button></div>
+
+      <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{kpis.map((kpi) => <article key={kpi.label} className="rounded-xl border border-white/10 bg-slate-900/60 p-4 shadow-sm"><p className="text-sm text-slate-400">{kpi.label}</p><div className="mt-3 flex items-end justify-between gap-3"><p className="text-2xl font-semibold tracking-tight text-white">{kpi.value}</p><span className={`text-xs font-medium ${kpi.color}`}>{kpi.change}</span></div><p className="mt-2 text-xs text-slate-500">vs. previous period</p></article>)}</div>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(19rem,0.8fr)]">
+        <article className="rounded-xl border border-white/10 bg-slate-900/60 p-5"><div className="flex items-start justify-between gap-4"><div><h2 className="text-base font-semibold text-white">Conversation trend</h2><p className="mt-1 text-sm text-slate-500">Incoming customer conversations</p></div><span className="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs font-medium text-cyan-200">439 total</span></div><div className="mt-7 h-56"><svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full overflow-visible" role="img" aria-label="Seven-day conversation trend chart"><defs><linearGradient id="analytics-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#22d3ee" stopOpacity="0.28" /><stop offset="100%" stopColor="#22d3ee" stopOpacity="0" /></linearGradient></defs>{[20, 40, 60, 80].map((line) => <line key={line} x1="0" x2="100" y1={line} y2={line} stroke="currentColor" className="text-white/10" vectorEffect="non-scaling-stroke" />)}<polygon points={`0,100 ${trendPoints} 100,100`} fill="url(#analytics-fill)" /><polyline points={trendPoints} fill="none" stroke="#22d3ee" strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />{analyticsTrend.map((value, index) => <circle key={value} cx={(index / (analyticsTrend.length - 1)) * 100} cy={100 - ((value - 35) / 55) * 82} r="1.8" fill="#22d3ee" vectorEffect="non-scaling-stroke" />)}</svg></div><div className="mt-3 grid grid-cols-7 text-center text-xs text-slate-500">{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => <span key={day}>{day}</span>)}</div></article>
+
+        <article className="rounded-xl border border-white/10 bg-slate-900/60 p-5"><h2 className="text-base font-semibold text-white">Resolution status</h2><p className="mt-1 text-sm text-slate-500">Current conversation distribution</p><div className="mt-7 flex justify-center"><div className="relative size-40 rounded-full" style={{ background: "conic-gradient(#22d3ee 0 71%, #fbbf24 71% 87%, #64748b 87% 100%)" }}><div className="absolute inset-4 flex flex-col items-center justify-center rounded-full bg-slate-900"><span className="text-2xl font-semibold text-white">1,284</span><span className="text-xs text-slate-500">total</span></div></div></div><div className="mt-7 space-y-3">{[{ label: "Resolved", value: "71%", dot: "bg-cyan-400" }, { label: "Waiting", value: "16%", dot: "bg-amber-400" }, { label: "Open", value: "13%", dot: "bg-slate-400" }].map((item) => <div key={item.label} className="flex items-center justify-between text-sm"><span className="flex items-center gap-2 text-slate-300"><span className={`size-2 rounded-full ${item.dot}`} />{item.label}</span><span className="font-medium text-white">{item.value}</span></div>)}</div></article>
+      </div>
+
+      <article className="mt-6 rounded-xl border border-white/10 bg-slate-900/60 p-5"><div><h2 className="text-base font-semibold text-white">Channel breakdown</h2><p className="mt-1 text-sm text-slate-500">Where customers are reaching your team</p></div><div className="mt-6 grid gap-5 sm:grid-cols-2">{[{ label: "Email", count: "824 conversations", percent: 64, color: "bg-cyan-400" }, { label: "Chat", count: "460 conversations", percent: 36, color: "bg-violet-400" }].map((channel) => <div key={channel.label} className="rounded-lg bg-slate-950/60 p-4"><div className="flex items-center justify-between"><p className="font-medium text-slate-100">{channel.label}</p><span className="text-sm font-semibold text-white">{channel.percent}%</span></div><p className="mt-1 text-sm text-slate-500">{channel.count}</p><div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full ${channel.color}`} style={{ width: `${channel.percent}%` }} /></div></div>)}</div></article>
+    </div>
+  </div>;
+}
+
 function DashboardPage() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
@@ -87,7 +116,7 @@ function DashboardPage() {
             <div className="ml-auto flex items-center gap-3"><span className="hidden text-sm text-slate-400 sm:block">Team workspace</span><span className="size-2 rounded-full bg-emerald-400" aria-label="System operational" /></div>
           </header>
 
-          {activeItem !== "Inbox" ? <div className="flex flex-1 items-center justify-center p-6"><div className="max-w-sm rounded-2xl border border-white/10 bg-slate-900/60 p-8 text-center"><p className="text-lg font-semibold text-white">{activeItem}</p><p className="mt-2 text-sm leading-6 text-slate-400">This workspace area is ready for your team&apos;s information.</p><button type="button" onClick={() => setActiveItem("Inbox")} className="mt-5 rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Back to Inbox</button></div></div> : <div className="grid min-h-0 flex-1 lg:grid-cols-[20rem_minmax(0,1fr)_minmax(20rem,0.8fr)]">
+          {activeItem === "Analytics" ? <AnalyticsView /> : activeItem !== "Inbox" ? <div className="flex flex-1 items-center justify-center p-6"><div className="max-w-sm rounded-2xl border border-white/10 bg-slate-900/60 p-8 text-center"><p className="text-lg font-semibold text-white">{activeItem}</p><p className="mt-2 text-sm leading-6 text-slate-400">This workspace area is ready for your team&apos;s information.</p><button type="button" onClick={() => setActiveItem("Inbox")} className="mt-5 rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Back to Inbox</button></div></div> : <div className="grid min-h-0 flex-1 lg:grid-cols-[20rem_minmax(0,1fr)_minmax(20rem,0.8fr)]">
             <section className="border-b border-white/10 bg-slate-950/40 lg:border-r lg:border-b-0" aria-label="Conversations">
               <div className="flex items-center justify-between px-4 pb-3 pt-5"><div><h1 className="text-xl font-semibold text-white">Inbox</h1><p className="mt-1 text-sm text-slate-500">3 open conversations</p></div><button type="button" className="rounded-lg border border-white/10 px-2.5 py-1.5 text-sm text-slate-300 hover:border-white/25 hover:text-white" aria-label="Filter conversations">⌘</button></div>
               <div className="max-h-72 overflow-y-auto border-t border-white/10 lg:max-h-none lg:overflow-y-auto">
