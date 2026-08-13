@@ -49,6 +49,71 @@ type KnowledgeArticle = {
   status: "Published";
 };
 
+type WorkspaceSettings = {
+  workspaceName: string;
+  companyName: string;
+  supportEmail: string;
+  defaultReplyTone: string;
+  autoReply: boolean;
+  workingHoursStart: string;
+  workingHoursEnd: string;
+  aiAssistance: boolean;
+  suggestedReplies: boolean;
+  aiResponseTone: string;
+};
+
+const settingsStorageKey = "supportai-workspace-settings";
+const defaultWorkspaceSettings: WorkspaceSettings = {
+  workspaceName: "Team workspace",
+  companyName: "SupportAI",
+  supportEmail: "support@supportai.com",
+  defaultReplyTone: "Friendly and helpful",
+  autoReply: false,
+  workingHoursStart: "09:00",
+  workingHoursEnd: "17:00",
+  aiAssistance: true,
+  suggestedReplies: true,
+  aiResponseTone: "Professional",
+};
+
+function getStoredWorkspaceSettings(): WorkspaceSettings {
+  try {
+    const stored = window.localStorage.getItem(settingsStorageKey);
+    return stored ? { ...defaultWorkspaceSettings, ...JSON.parse(stored) as Partial<WorkspaceSettings> } : defaultWorkspaceSettings;
+  } catch {
+    return defaultWorkspaceSettings;
+  }
+}
+
+function SettingsView() {
+  const [savedSettings, setSavedSettings] = useState<WorkspaceSettings>(getStoredWorkspaceSettings);
+  const [settings, setSettings] = useState<WorkspaceSettings>(getStoredWorkspaceSettings);
+  const [errors, setErrors] = useState<Partial<Record<keyof WorkspaceSettings, string>>>({});
+  const [isSaved, setIsSaved] = useState(false);
+  const updateSetting = <K extends keyof WorkspaceSettings>(key: K, value: WorkspaceSettings[K]) => { setSettings((current) => ({ ...current, [key]: value })); setErrors((current) => ({ ...current, [key]: undefined })); setIsSaved(false); };
+  const isDirty = JSON.stringify(settings) !== JSON.stringify(savedSettings);
+  const saveSettings = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const nextErrors: Partial<Record<keyof WorkspaceSettings, string>> = {};
+    if (!settings.workspaceName.trim()) nextErrors.workspaceName = "Workspace name is required.";
+    if (!settings.companyName.trim()) nextErrors.companyName = "Company name is required.";
+    if (!settings.supportEmail.trim()) nextErrors.supportEmail = "Support email is required.";
+    else if (!/^\S+@\S+\.\S+$/.test(settings.supportEmail)) nextErrors.supportEmail = "Enter a valid support email.";
+    if (!settings.workingHoursStart || !settings.workingHoursEnd) nextErrors.workingHoursStart = "Set both working hours.";
+    if (Object.keys(nextErrors).length) { setErrors(nextErrors); setIsSaved(false); return; }
+    const nextSettings = { ...settings, workspaceName: settings.workspaceName.trim(), companyName: settings.companyName.trim(), supportEmail: settings.supportEmail.trim() };
+    window.localStorage.setItem(settingsStorageKey, JSON.stringify(nextSettings));
+    setSettings(nextSettings);
+    setSavedSettings(nextSettings);
+    setIsSaved(true);
+  };
+
+  const fieldClass = "mt-2 block w-full rounded-lg border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm text-white focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300";
+  const toggle = (label: string, description: string, checked: boolean, onChange: (value: boolean) => void) => <label className="flex cursor-pointer items-start justify-between gap-5 rounded-lg px-1 py-2"><span><span className="block text-sm font-medium text-slate-200">{label}</span><span className="mt-1 block text-sm leading-6 text-slate-500">{description}</span></span><span className="relative mt-1 inline-flex shrink-0"><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="peer sr-only" /><span className="h-6 w-11 rounded-full bg-slate-700 transition-colors peer-checked:bg-cyan-400 peer-focus:outline-2 peer-focus:outline-offset-2 peer-focus:outline-cyan-300" /><span className="pointer-events-none absolute left-1 top-1 size-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" /></span></label>;
+
+  return <div className="flex-1 overflow-y-auto bg-slate-950/30 p-4 sm:p-6 lg:p-8"><div className="mx-auto max-w-4xl"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Settings</h1><p className="mt-2 text-sm text-slate-400">Configure your workspace and support preferences.</p></div>{isSaved && <p className="rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-sm font-medium text-emerald-300" role="status">Changes saved</p>}</div><form onSubmit={saveSettings} className="mt-7 space-y-6"><section className="rounded-xl border border-white/10 bg-slate-900/60 p-5 shadow-sm"><div><h2 className="text-base font-semibold text-white">Workspace Information</h2><p className="mt-1 text-sm text-slate-500">Details your team uses across SupportAI.</p></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div><label htmlFor="workspace-name" className="text-sm font-medium text-slate-200">Workspace name</label><input id="workspace-name" value={settings.workspaceName} onChange={(event) => updateSetting("workspaceName", event.target.value)} className={fieldClass} aria-invalid={Boolean(errors.workspaceName)} />{errors.workspaceName && <p className="mt-1.5 text-xs text-rose-300">{errors.workspaceName}</p>}</div><div><label htmlFor="company-name" className="text-sm font-medium text-slate-200">Company / business name</label><input id="company-name" value={settings.companyName} onChange={(event) => updateSetting("companyName", event.target.value)} className={fieldClass} aria-invalid={Boolean(errors.companyName)} />{errors.companyName && <p className="mt-1.5 text-xs text-rose-300">{errors.companyName}</p>}</div><div className="sm:col-span-2"><label htmlFor="support-email" className="text-sm font-medium text-slate-200">Support email</label><input id="support-email" type="email" value={settings.supportEmail} onChange={(event) => updateSetting("supportEmail", event.target.value)} className={fieldClass} aria-invalid={Boolean(errors.supportEmail)} />{errors.supportEmail && <p className="mt-1.5 text-xs text-rose-300">{errors.supportEmail}</p>}</div></div></section><section className="rounded-xl border border-white/10 bg-slate-900/60 p-5 shadow-sm"><div><h2 className="text-base font-semibold text-white">Support Preferences</h2><p className="mt-1 text-sm text-slate-500">Set defaults for how your team supports customers.</p></div><div className="mt-6 grid gap-5 sm:grid-cols-2"><div><label htmlFor="reply-tone" className="text-sm font-medium text-slate-200">Default reply tone</label><select id="reply-tone" value={settings.defaultReplyTone} onChange={(event) => updateSetting("defaultReplyTone", event.target.value)} className={fieldClass}><option>Friendly and helpful</option><option>Professional</option><option>Concise</option><option>Warm and conversational</option></select></div><div className="rounded-lg border border-white/8 bg-slate-950/35 px-4">{toggle("Auto-reply", "Send an automatic acknowledgement to new customer messages.", settings.autoReply, (value) => updateSetting("autoReply", value))}</div><div className="sm:col-span-2"><p className="text-sm font-medium text-slate-200">Working hours</p><p className="mt-1 text-sm text-slate-500">Use your local workspace time for support availability.</p><div className="mt-3 flex max-w-md items-center gap-3"><label className="sr-only" htmlFor="working-hours-start">Start time</label><input id="working-hours-start" type="time" value={settings.workingHoursStart} onChange={(event) => updateSetting("workingHoursStart", event.target.value)} className={fieldClass.replace("mt-2", "mt-0")} /><span className="text-sm text-slate-500">to</span><label className="sr-only" htmlFor="working-hours-end">End time</label><input id="working-hours-end" type="time" value={settings.workingHoursEnd} onChange={(event) => updateSetting("workingHoursEnd", event.target.value)} className={fieldClass.replace("mt-2", "mt-0")} /></div>{errors.workingHoursStart && <p className="mt-1.5 text-xs text-rose-300">{errors.workingHoursStart}</p>}</div></div></section><section className="rounded-xl border border-white/10 bg-slate-900/60 p-5 shadow-sm"><div><h2 className="text-base font-semibold text-white">AI Assistance</h2><p className="mt-1 text-sm text-slate-500">Control how SupportAI helps your team respond.</p></div><div className="mt-5 divide-y divide-white/10"><div>{toggle("AI assistance", "Use your workspace knowledge to help support conversations.", settings.aiAssistance, (value) => updateSetting("aiAssistance", value))}</div><div>{toggle("Suggested replies", "Show draft responses for your team to review before sending.", settings.suggestedReplies, (value) => updateSetting("suggestedReplies", value))}</div><div className="pt-5 sm:max-w-sm"><label htmlFor="ai-tone" className="text-sm font-medium text-slate-200">AI response tone</label><select id="ai-tone" value={settings.aiResponseTone} onChange={(event) => updateSetting("aiResponseTone", event.target.value)} className={fieldClass}><option>Professional</option><option>Friendly and helpful</option><option>Concise</option><option>Warm and conversational</option></select></div></div></section><div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between"><button type="button" disabled={!isDirty} onClick={() => { setSettings(savedSettings); setErrors({}); setIsSaved(false); }} className="w-full rounded-lg border border-white/10 px-4 py-2.5 text-sm font-medium text-slate-300 hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto">Discard changes</button><button type="submit" className="w-full rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 sm:w-auto">Save changes</button></div></form></div></div>;
+}
+
 const initialKnowledgeArticles: KnowledgeArticle[] = [
   { id: 1, title: "Shipping & Delivery", description: "Delivery timeframes, tracking updates, and shipping options for customer orders.", category: "Orders", updatedAt: "Updated Aug 10, 2026", status: "Published", content: "We process orders within one business day. Standard delivery usually takes 3–5 business days after dispatch, while express delivery takes 1–2 business days.\n\nOnce an order leaves our warehouse, customers receive a shipping confirmation email with a tracking link. Tracking can take up to 24 hours to show its first update.\n\nIf an order has not arrived by the end of its estimated delivery window, please ask the customer to confirm their shipping address before opening a carrier investigation." },
   { id: 2, title: "Refund Policy", description: "Eligibility, processing times, and the steps customers should follow to request a refund.", category: "Policies", updatedAt: "Updated Aug 8, 2026", status: "Published", content: "Customers may request a refund within 30 days of delivery for eligible purchases. Items must be returned unused and in their original condition unless the item arrived damaged or incorrect.\n\nAfter a return is received and inspected, approved refunds are issued to the original payment method within 5–10 business days. Shipping fees are non-refundable unless we made an error with the order.\n\nFor refund requests, collect the order number, reason for the request, and any relevant photos when an item is damaged." },
@@ -176,7 +241,7 @@ function DashboardPage() {
             <div className="ml-auto flex items-center gap-3"><span className="hidden text-sm text-slate-400 sm:block">Team workspace</span><span className="size-2 rounded-full bg-emerald-400" aria-label="System operational" /></div>
           </header>
 
-          {activeItem === "Analytics" ? <AnalyticsView /> : activeItem === "Knowledge" ? <KnowledgeView /> : activeItem !== "Inbox" ? <div className="flex flex-1 items-center justify-center p-6"><div className="max-w-sm rounded-2xl border border-white/10 bg-slate-900/60 p-8 text-center"><p className="text-lg font-semibold text-white">{activeItem}</p><p className="mt-2 text-sm leading-6 text-slate-400">This workspace area is ready for your team&apos;s information.</p><button type="button" onClick={() => setActiveItem("Inbox")} className="mt-5 rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Back to Inbox</button></div></div> : <div className="grid min-h-0 flex-1 lg:grid-cols-[20rem_minmax(0,1fr)_minmax(20rem,0.8fr)]">
+          {activeItem === "Analytics" ? <AnalyticsView /> : activeItem === "Knowledge" ? <KnowledgeView /> : activeItem === "Settings" ? <SettingsView /> : activeItem !== "Inbox" ? <div className="flex flex-1 items-center justify-center p-6"><div className="max-w-sm rounded-2xl border border-white/10 bg-slate-900/60 p-8 text-center"><p className="text-lg font-semibold text-white">{activeItem}</p><p className="mt-2 text-sm leading-6 text-slate-400">This workspace area is ready for your team&apos;s information.</p><button type="button" onClick={() => setActiveItem("Inbox")} className="mt-5 rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Back to Inbox</button></div></div> : <div className="grid min-h-0 flex-1 lg:grid-cols-[20rem_minmax(0,1fr)_minmax(20rem,0.8fr)]">
             <section className="border-b border-white/10 bg-slate-950/40 lg:border-r lg:border-b-0" aria-label="Conversations">
               <div className="flex items-center justify-between px-4 pb-3 pt-5"><div><h1 className="text-xl font-semibold text-white">Inbox</h1><p className="mt-1 text-sm text-slate-500">3 open conversations</p></div><button type="button" className="rounded-lg border border-white/10 px-2.5 py-1.5 text-sm text-slate-300 hover:border-white/25 hover:text-white" aria-label="Filter conversations">⌘</button></div>
               <div className="max-h-72 overflow-y-auto border-t border-white/10 lg:max-h-none lg:overflow-y-auto">
