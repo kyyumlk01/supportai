@@ -9,6 +9,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/auth");
+const knowledgeRoutes = require("./routes/knowledge");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,6 +24,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/knowledge", knowledgeRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
