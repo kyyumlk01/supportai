@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import {
+  getKnowledgeArticles} from "../../services/knowledge";
 
 type Conversation = {
   id: number;
@@ -40,9 +42,9 @@ function StatusBadge({ status }: { status: Conversation["status"] }) {
 const analyticsTrend = [42, 56, 48, 71, 64, 82, 76];
 
 type KnowledgeArticle = {
-  id: number;
+  id: string | number;
   title: string;
-  description: string;
+  description?: string;
   category: string;
   content: string;
   updatedAt: string;
@@ -124,6 +126,18 @@ const initialKnowledgeArticles: KnowledgeArticle[] = [
 
 function KnowledgeView() {
   const [articles, setArticles] = useState(initialKnowledgeArticles);
+  useEffect(() => {
+  const loadKnowledgeArticles = async () => {
+    try {
+      const data = await getKnowledgeArticles();
+      setArticles(data);
+    } catch (error) {
+      console.error("Failed to load knowledge articles:", error);
+    }
+  };
+
+  loadKnowledgeArticles();
+}, []);
   const [search, setSearch] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<KnowledgeArticle | null>(null);
   const [editingArticle, setEditingArticle] = useState<KnowledgeArticle | null>(null);

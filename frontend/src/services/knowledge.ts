@@ -18,14 +18,14 @@ knowledgeApi.interceptors.request.use((config) => {
 
 export interface KnowledgeArticle {
   _id?: string;
-  id?: string;
+  id: string;
   user?: string;
   title: string;
   category: string;
   content: string;
   description?: string;
-  updatedAt?: string;
-  status?: string;
+  updatedAt: string;
+  status: "Published";
   createdAt?: string;
 }
 
