@@ -2,7 +2,10 @@ import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import {
-  getKnowledgeArticles} from "../../services/knowledge";
+  getKnowledgeArticles,
+  createKnowledgeArticle,
+  updateKnowledgeArticle,
+} from "../../services/knowledge";
 
 type Conversation = {
   id: number;
@@ -149,22 +152,57 @@ function KnowledgeView() {
   const closeForm = () => { setIsFormOpen(false); setEditingArticle(null); setForm({ title: "", category: "Orders", content: "" }); };
   const openCreateForm = () => { setEditingArticle(null); setForm({ title: "", category: "Orders", content: "" }); setIsFormOpen(true); };
   const openEditForm = (article: KnowledgeArticle) => { setSelectedArticle(null); setEditingArticle(article); setForm({ title: article.title, category: article.category, content: article.content }); setIsFormOpen(true); };
-  const saveArticle = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const title = form.title.trim();
-    const content = form.content.trim();
-    if (!title || !content) return;
-    const description = content.replace(/\s+/g, " ").slice(0, 105).trim() + (content.length > 105 ? "…" : "");
+  const saveArticle = async (
+  event: React.FormEvent<HTMLFormElement>
+) => {
+  event.preventDefault();
+
+  const title = form.title.trim();
+  const content = form.content.trim();
+
+  if (!title || !content) return;
+
+  const description =
+    content.replace(/\s+/g, " ").slice(0, 105).trim() +
+    (content.length > 105 ? "..." : "");
+
+  try {
     if (editingArticle) {
-      const updated = { ...editingArticle, title, category: form.category, content, description, updatedAt: "Updated just now" };
-      setArticles((current) => current.map((article) => article.id === updated.id ? updated : article));
+      const updated = await updateKnowledgeArticle(
+        String(editingArticle.id),
+        {
+          title,
+          category: form.category,
+          content,
+          description,
+          status: "Published",
+        }
+      );
+
+      setArticles((current) =>
+        current.map((article) =>
+          article.id === editingArticle.id ? updated : article
+        )
+      );
+
       setSelectedArticle(updated);
     } else {
-      const article = { id: Date.now(), title, category: form.category, content, description, updatedAt: "Updated just now", status: "Published" as const };
-      setArticles((current) => [article, ...current]);
+      const created = await createKnowledgeArticle({
+        title,
+        category: form.category,
+        content,
+        description,
+        status: "Published",
+      });
+
+      setArticles((current) => [created, ...current]);
     }
+
     closeForm();
-  };
+  } catch (error) {
+    console.error("Failed to save knowledge article:", error);
+  }
+};
 
   return <div className="flex-1 overflow-y-auto bg-slate-950/30 p-4 sm:p-6 lg:p-8">
     <div className="mx-auto max-w-7xl">
