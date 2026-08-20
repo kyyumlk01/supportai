@@ -5,6 +5,7 @@ import {
   getKnowledgeArticles,
   createKnowledgeArticle,
   updateKnowledgeArticle,
+  deleteKnowledgeArticle,
 } from "../../services/knowledge";
 
 type Conversation = {
@@ -46,6 +47,7 @@ const analyticsTrend = [42, 56, 48, 71, 64, 82, 76];
 
 type KnowledgeArticle = {
   id: string | number;
+  _id?: string;
   title: string;
   description?: string;
   category: string;
@@ -204,6 +206,25 @@ function KnowledgeView() {
   }
 };
 
+  const deleteArticle = async () => {
+  if (!articleToDelete) return;
+
+  try {
+    await deleteKnowledgeArticle(String(articleToDelete._id ?? articleToDelete.id));
+
+    setArticles((current) =>
+      current.filter((article) =>
+    String(article._id ?? article.id) !==
+    String(articleToDelete._id ?? articleToDelete.id))
+    );
+
+    setSelectedArticle(null);
+    setArticleToDelete(null);
+  } catch (error) {
+    console.error("Failed to delete knowledge article:", error);
+  }
+};
+
   return <div className="flex-1 overflow-y-auto bg-slate-950/30 p-4 sm:p-6 lg:p-8">
     <div className="mx-auto max-w-7xl">
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Knowledge</h1><p className="mt-2 text-sm text-slate-400">Manage the information SupportAI uses to help your team.</p></div><button type="button" onClick={openCreateForm} className="inline-flex w-fit items-center gap-2 rounded-lg bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300"><span aria-hidden="true">+</span>Add knowledge</button></div>
@@ -212,7 +233,7 @@ function KnowledgeView() {
     </div>
     {selectedArticle && <div className="fixed inset-0 z-50 flex items-end bg-slate-950/75 p-0 sm:items-center sm:justify-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="article-title"><div className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-t-2xl border border-white/10 bg-slate-900 shadow-2xl sm:rounded-2xl"><div className="flex items-start justify-between gap-4 border-b border-white/10 p-5"><div><span className="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs font-medium text-cyan-200">{selectedArticle.category}</span><h2 id="article-title" className="mt-3 text-xl font-semibold text-white">{selectedArticle.title}</h2><p className="mt-1 text-xs text-slate-500">{selectedArticle.updatedAt}</p></div><button type="button" onClick={() => setSelectedArticle(null)} className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="Close article">×</button></div><div className="overflow-y-auto px-5 py-6"><div className="whitespace-pre-line text-sm leading-7 text-slate-300">{selectedArticle.content}</div></div><div className="flex justify-between gap-3 border-t border-white/10 p-5"><button type="button" onClick={() => setArticleToDelete(selectedArticle)} className="rounded-lg px-3.5 py-2 text-sm font-medium text-rose-300 hover:bg-rose-400/10">Delete</button><div className="flex gap-3"><button type="button" onClick={() => setSelectedArticle(null)} className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-slate-300 hover:border-white/25 hover:text-white">Close</button><button type="button" onClick={() => openEditForm(selectedArticle)} className="rounded-lg bg-cyan-400 px-3.5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Edit</button></div></div></div></div>}
     {isFormOpen && <div className="fixed inset-0 z-50 flex items-end bg-slate-950/75 p-0 sm:items-center sm:justify-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="knowledge-form-title"><form onSubmit={saveArticle} className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-t-2xl border border-white/10 bg-slate-900 shadow-2xl sm:rounded-2xl"><div className="border-b border-white/10 p-5"><h2 id="knowledge-form-title" className="text-xl font-semibold text-white">{editingArticle ? "Edit knowledge" : "Add knowledge"}</h2><p className="mt-1 text-sm text-slate-400">Create a clear, useful resource for your support team.</p></div><div className="space-y-5 overflow-y-auto p-5"><div><label htmlFor="article-title-input" className="text-sm font-medium text-slate-200">Article title</label><input id="article-title-input" required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm text-white focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300" /></div><div><label htmlFor="article-category" className="text-sm font-medium text-slate-200">Category</label><select id="article-category" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm text-white focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300"><option>Orders</option><option>Policies</option><option>Billing</option><option>Account</option><option>General</option></select></div><div><label htmlFor="article-content" className="text-sm font-medium text-slate-200">Content</label><textarea id="article-content" required rows={9} value={form.content} onChange={(event) => setForm({ ...form, content: event.target.value })} className="mt-2 block w-full resize-y rounded-lg border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm leading-6 text-white focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300" /></div></div><div className="flex justify-end gap-3 border-t border-white/10 p-5"><button type="button" onClick={closeForm} className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-slate-300 hover:border-white/25 hover:text-white">Cancel</button><button type="submit" className="rounded-lg bg-cyan-400 px-3.5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-300">Save knowledge</button></div></form></div>}
-    {articleToDelete && <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/75 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-article-title"><div className="w-full max-w-md rounded-xl border border-white/10 bg-slate-900 p-5 shadow-2xl"><h2 id="delete-article-title" className="text-lg font-semibold text-white">Delete knowledge article?</h2><p className="mt-2 text-sm leading-6 text-slate-400">This will permanently remove “{articleToDelete.title}” from the local knowledge list.</p><div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setArticleToDelete(null)} className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-slate-300 hover:border-white/25 hover:text-white">Cancel</button><button type="button" onClick={() => { setArticles((current) => current.filter((article) => article.id !== articleToDelete.id)); setArticleToDelete(null); setSelectedArticle(null); }} className="rounded-lg bg-rose-400 px-3.5 py-2 text-sm font-semibold text-slate-950 hover:bg-rose-300">Delete</button></div></div></div>}
+    {articleToDelete && <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/75 p-4" role="dialog" aria-modal="true" aria-labelledby="delete-article-title"><div className="w-full max-w-md rounded-xl border border-white/10 bg-slate-900 p-5 shadow-2xl"><h2 id="delete-article-title" className="text-lg font-semibold text-white">Delete knowledge article?</h2><p className="mt-2 text-sm leading-6 text-slate-400">This will permanently remove “{articleToDelete.title}” from the local knowledge list.</p><div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setArticleToDelete(null)} className="rounded-lg border border-white/10 px-3.5 py-2 text-sm font-medium text-slate-300 hover:border-white/25 hover:text-white">Cancel</button><button type="button" onClick={deleteArticle} className="rounded-lg bg-rose-400 px-3.5 py-2 text-sm font-semibold text-slate-950 hover:bg-rose-300">Delete</button></div></div></div>}
   </div>;
 }
 
