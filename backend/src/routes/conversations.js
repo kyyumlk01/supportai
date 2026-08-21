@@ -5,6 +5,49 @@ const auth = require("../middleware/auth");
 
 const router = express.Router();
 
+// Create a conversation
+router.post("/", auth, async (req, res) => {
+  try {
+    const {
+      customer,
+      initials,
+      subject,
+      preview,
+      status,
+      channel,
+    } = req.body;
+
+    if (!customer || !initials || !subject || !preview) {
+      return res.status(400).json({
+        success: false,
+        message: "Customer, initials, subject, and preview are required",
+      });
+    }
+
+    const conversation = await Conversation.create({
+      customer,
+      initials,
+      subject,
+      preview,
+      status: status || "Open",
+      channel: channel || "Email",
+      user: req.userId,
+    });
+
+    return res.status(201).json({
+      success: true,
+      conversation,
+    });
+  } catch (error) {
+    console.error("Failed to create conversation:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create conversation",
+    });
+  }
+});
+
 // Get all conversations
 router.get("/", auth, async (req, res) => {
   try {
