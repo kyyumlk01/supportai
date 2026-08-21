@@ -9,6 +9,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/auth");
+const conversationRoutes = require("./routes/conversations");
 const knowledgeRoutes = require("./routes/knowledge");
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/conversations", conversationRoutes);
 app.use("/api/knowledge", knowledgeRoutes);
 
 // Health check
