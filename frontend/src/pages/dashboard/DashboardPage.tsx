@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { getConversations } from "../../services/conversations";
 import {
   getKnowledgeArticles,
   createKnowledgeArticle,
@@ -9,7 +10,7 @@ import {
 } from "../../services/knowledge";
 
 type Conversation = {
-  id: number;
+  id: string | number;
   customer: string;
   initials: string;
   subject: string;
@@ -18,13 +19,32 @@ type Conversation = {
   status: "Open" | "Waiting" | "Resolved";
   channel: string;
 };
+const [conversations, setConversations] = useState<Conversation[]>([]);
 
-const conversations: Conversation[] = [
-  { id: 1, customer: "Maya Patel", initials: "MP", subject: "Order status request", preview: "Hi, could you let me know when my order will ship?", time: "2m", status: "Open", channel: "Email" },
-  { id: 2, customer: "Noah Williams", initials: "NW", subject: "Billing question", preview: "I noticed an unexpected charge on my latest invoice.", time: "18m", status: "Waiting", channel: "Email" },
-  { id: 3, customer: "Olivia Chen", initials: "OC", subject: "Unable to update my profile", preview: "The save button does not seem to keep my changes.", time: "42m", status: "Open", channel: "Chat" },
-  { id: 4, customer: "Liam Johnson", initials: "LJ", subject: "Feature request", preview: "Would it be possible to export the monthly report?", time: "1h", status: "Resolved", channel: "Email" },
-];
+useEffect(() => {
+  const loadConversations = async () => {
+    try {
+      const data = await getConversations();
+
+      setConversations(
+        data.map((conversation) => ({
+          id: conversation._id,
+          customer: conversation.customer,
+          initials: conversation.initials,
+          subject: conversation.subject,
+          preview: conversation.preview,
+          time: new Date(conversation.createdAt).toLocaleDateString(),
+          status: conversation.status,
+          channel: conversation.channel,
+        }))
+      );
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+    }
+  };
+
+  void loadConversations();
+}, []);
 
 const navigationItems = [
   { label: "Inbox", icon: "⌂" },
@@ -268,7 +288,7 @@ function DashboardPage() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("Inbox");
-  const [selectedId, setSelectedId] = useState(1);
+  const [selectedId, setSelectedId] = useState<string | number>(1);
   const [reply, setReply] = useState("");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const selectedConversation = useMemo(() => conversations.find((conversation) => conversation.id === selectedId) ?? conversations[0], [selectedId]);
@@ -278,7 +298,7 @@ function DashboardPage() {
     navigate("/");
   };
 
-  const selectConversation = (id: number) => {
+  const selectConversation = (id: string | number) => {
     setSelectedId(id);
     setIsMobileSidebarOpen(false);
   };
