@@ -271,18 +271,33 @@ function DashboardPage() {
       try {
         const data = await getConversations();
 
-        setConversations(
-          data.map((conversation) => ({
-            id: conversation._id,
-            customer: conversation.customer,
-            initials: conversation.initials,
-            subject: conversation.subject,
-            preview: conversation.preview,
-            time: new Date(conversation.createdAt).toLocaleDateString(),
-            status: conversation.status,
-            channel: conversation.channel,
-          })),
-        );
+        const mappedConversations: Conversation[] = data.map((conversation) => ({
+          id: conversation._id,
+          customer: conversation.customer ?? "Unknown customer",
+          initials: conversation.initials ?? "U",
+          subject: conversation.subject ?? "No subject",
+          preview: conversation.preview ?? "No message preview available.",
+          time: conversation.createdAt
+            ? new Date(conversation.createdAt).toLocaleDateString()
+            : "",
+          status:
+            conversation.status === "Waiting" || conversation.status === "Resolved"
+              ? conversation.status
+              : "Open",
+          channel: conversation.channel ?? "Unknown",
+        }));
+
+        setConversations(mappedConversations);
+        setSelectedId((currentSelectedId) => {
+          if (
+            currentSelectedId !== null &&
+            mappedConversations.some((conversation) => conversation.id === currentSelectedId)
+          ) {
+            return currentSelectedId;
+          }
+
+          return mappedConversations[0]?.id ?? null;
+        });
       } catch (error) {
         console.error("Failed to load conversations:", error);
       }
@@ -291,10 +306,14 @@ function DashboardPage() {
     void loadConversations();
   }, []);
   const [activeItem, setActiveItem] = useState("Inbox");
-  const [selectedId, setSelectedId] = useState<string | number>(1);
+  const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [reply, setReply] = useState("");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const selectedConversation = useMemo(() => conversations.find((conversation) => conversation.id === selectedId) ?? conversations[0], [selectedId]);
+  const selectedConversation = useMemo(
+    () =>
+      conversations.find((conversation) => conversation.id === selectedId) ?? null,
+    [conversations, selectedId],
+  );
 
   const handleLogout = () => {
     logout();
@@ -345,12 +364,26 @@ function DashboardPage() {
             </section>
 
             <section className="flex min-h-[38rem] min-w-0 flex-col border-b border-white/10 bg-slate-900/30 lg:border-r lg:border-b-0" aria-label="Conversation details">
-              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4"><div className="min-w-0"><p className="text-sm font-semibold text-white">{selectedConversation.subject}</p><p className="mt-1 text-xs text-slate-500">#{String(selectedConversation.id).padStart(4, "0")} · via {selectedConversation.channel}</p></div><StatusBadge status={selectedConversation.status} /></div>
-              <div className="flex-1 space-y-6 overflow-y-auto p-5"><div className="flex gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-cyan-200">{selectedConversation.initials}</span><div className="max-w-lg"><div className="flex items-center gap-2"><p className="text-sm font-medium text-white">{selectedConversation.customer}</p><span className="text-xs text-slate-500">Today, 10:24 AM</span></div><div className="mt-2 rounded-2xl rounded-tl-sm bg-slate-800 px-4 py-3 text-sm leading-6 text-slate-200">{selectedConversation.preview} I&apos;d appreciate any update you can share.</div></div></div><div className="flex justify-end"><div className="max-w-lg"><p className="text-right text-xs text-slate-500">SupportAI · just now</p><div className="mt-2 rounded-2xl rounded-tr-sm bg-cyan-400 px-4 py-3 text-sm leading-6 text-slate-950">Thanks for reaching out, {selectedConversation.customer.split(" ")[0]}. I&apos;m checking this for you now and will share an update shortly.</div></div></div></div>
-              <form className="border-t border-white/10 p-4" onSubmit={(event) => { event.preventDefault(); setReply(""); }}><label htmlFor="reply" className="sr-only">Reply to customer</label><textarea id="reply" value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Write a reply…" rows={3} className="block w-full resize-none rounded-xl border border-white/10 bg-slate-950 px-3.5 py-3 text-sm text-white placeholder:text-slate-600 focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-500">Replies are sent to {selectedConversation.customer}</span><button type="submit" disabled={!reply.trim()} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-45">Send reply</button></div></form>
+              {selectedConversation ? (
+                <>
+                  <div className="flex items-center justify-between border-b border-white/10 px-5 py-4"><div className="min-w-0"><p className="text-sm font-semibold text-white">{selectedConversation.subject}</p><p className="mt-1 text-xs text-slate-500">#{String(selectedConversation.id).padStart(4, "0")} · via {selectedConversation.channel}</p></div><StatusBadge status={selectedConversation.status} /></div>
+                  <div className="flex-1 space-y-6 overflow-y-auto p-5"><div className="flex gap-3"><span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-cyan-200">{selectedConversation.initials}</span><div className="max-w-lg"><div className="flex items-center gap-2"><p className="text-sm font-medium text-white">{selectedConversation.customer}</p><span className="text-xs text-slate-500">Today, 10:24 AM</span></div><div className="mt-2 rounded-2xl rounded-tl-sm bg-slate-800 px-4 py-3 text-sm leading-6 text-slate-200">{selectedConversation.preview} I&apos;d appreciate any update you can share.</div></div></div><div className="flex justify-end"><div className="max-w-lg"><p className="text-right text-xs text-slate-500">SupportAI · just now</p><div className="mt-2 rounded-2xl rounded-tr-sm bg-cyan-400 px-4 py-3 text-sm leading-6 text-slate-950">Thanks for reaching out, {selectedConversation.customer.split(" ")[0]}. I&apos;m checking this for you now and will share an update shortly.</div></div></div></div>
+                  <form className="border-t border-white/10 p-4" onSubmit={(event) => { event.preventDefault(); setReply(""); }}><label htmlFor="reply" className="sr-only">Reply to customer</label><textarea id="reply" value={reply} onChange={(event) => setReply(event.target.value)} placeholder="Write a reply…" rows={3} className="block w-full resize-none rounded-xl border border-white/10 bg-slate-950 px-3.5 py-3 text-sm text-white placeholder:text-slate-600 focus:border-cyan-300 focus:outline-2 focus:outline-offset-2 focus:outline-cyan-300" /><div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-500">Replies are sent to {selectedConversation.customer}</span><button type="submit" disabled={!reply.trim()} className="rounded-lg bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-45">Send reply</button></div></form>
+                </>
+              ) : (
+                <div className="flex flex-1 items-center justify-center p-8 text-center"><div className="max-w-sm"><div className="mx-auto flex size-12 items-center justify-center rounded-full bg-cyan-400/10 text-xl text-cyan-300">✦</div><h2 className="mt-4 text-lg font-semibold text-white">No conversation selected</h2><p className="mt-2 text-sm leading-6 text-slate-500">There are no customer conversations available yet. Once a conversation is created, it will appear here.</p></div></div>
+              )}
             </section>
 
-            <aside className="bg-slate-950/40 p-5" aria-label="AI assistance"><p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">SupportAI assist</p><h2 className="mt-2 text-lg font-semibold text-white">Suggested reply</h2><p className="mt-2 text-sm leading-6 text-slate-400">Based on order fulfilment guidance and this customer&apos;s conversation.</p><div className="mt-5 rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4"><p className="text-sm leading-6 text-slate-200">Hi {selectedConversation.customer.split(" ")[0]}, thanks for checking in. Your order is being prepared and is expected to leave our warehouse within one business day. We&apos;ll send tracking details as soon as it ships.</p><button type="button" onClick={() => setReply(`Hi ${selectedConversation.customer.split(" ")[0]}, thanks for checking in. Your order is being prepared and is expected to leave our warehouse within one business day. We’ll send tracking details as soon as it ships.`)} className="mt-4 rounded-lg border border-cyan-400/25 px-3 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-400/10">Use suggestion</button></div><div className="mt-6 rounded-xl border border-white/10 bg-slate-900/60 p-4"><p className="text-sm font-medium text-white">Customer context</p><dl className="mt-4 space-y-3 text-sm"><div className="flex justify-between gap-4"><dt className="text-slate-500">Plan</dt><dd className="text-slate-200">Growth</dd></div><div className="flex justify-between gap-4"><dt className="text-slate-500">Previous tickets</dt><dd className="text-slate-200">2 resolved</dd></div><div className="flex justify-between gap-4"><dt className="text-slate-500">Satisfaction</dt><dd className="text-emerald-300">Great</dd></div></dl></div></aside>
+            <aside className="bg-slate-950/40 p-5" aria-label="AI assistance">
+              {selectedConversation ? (
+                <>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-cyan-300">SupportAI assist</p><h2 className="mt-2 text-lg font-semibold text-white">Suggested reply</h2><p className="mt-2 text-sm leading-6 text-slate-400">Based on order fulfilment guidance and this customer&apos;s conversation.</p><div className="mt-5 rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4"><p className="text-sm leading-6 text-slate-200">Hi {selectedConversation.customer.split(" ")[0]}, thanks for checking in. Your order is being prepared and is expected to leave our warehouse within one business day. We&apos;ll send tracking details as soon as it ships.</p><button type="button" onClick={() => setReply(`Hi ${selectedConversation.customer.split(" ")[0]}, thanks for checking in. Your order is being prepared and is expected to leave our warehouse within one business day. We’ll send tracking details as soon as it ships.`)} className="mt-4 rounded-lg border border-cyan-400/25 px-3 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-400/10">Use suggestion</button></div><div className="mt-6 rounded-xl border border-white/10 bg-slate-900/60 p-4"><p className="text-sm font-medium text-white">Customer context</p><dl className="mt-4 space-y-3 text-sm"><div className="flex justify-between gap-4"><dt className="text-slate-500">Plan</dt><dd className="text-slate-200">Growth</dd></div><div className="flex justify-between gap-4"><dt className="text-slate-500">Previous tickets</dt><dd className="text-slate-200">2 resolved</dd></div><div className="flex justify-between gap-4"><dt className="text-slate-500">Satisfaction</dt><dd className="text-emerald-300">Great</dd></div></dl></div>
+                </>
+              ) : (
+                <div className="flex h-full min-h-72 items-center justify-center text-center"><div><p className="text-sm font-medium text-slate-300">AI assistance</p><p className="mt-2 text-sm leading-6 text-slate-500">Select a conversation to see a suggested reply and customer context.</p></div></div>
+              )}
+            </aside>
           </div>}
         </section>
       </div>
