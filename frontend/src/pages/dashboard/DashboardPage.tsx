@@ -19,32 +19,9 @@ type Conversation = {
   status: "Open" | "Waiting" | "Resolved";
   channel: string;
 };
-const [conversations, setConversations] = useState<Conversation[]>([]);
 
-useEffect(() => {
-  const loadConversations = async () => {
-    try {
-      const data = await getConversations();
 
-      setConversations(
-        data.map((conversation) => ({
-          id: conversation._id,
-          customer: conversation.customer,
-          initials: conversation.initials,
-          subject: conversation.subject,
-          preview: conversation.preview,
-          time: new Date(conversation.createdAt).toLocaleDateString(),
-          status: conversation.status,
-          channel: conversation.channel,
-        }))
-      );
-    } catch (error) {
-      console.error("Failed to load conversations:", error);
-    }
-  };
 
-  void loadConversations();
-}, []);
 
 const navigationItems = [
   { label: "Inbox", icon: "⌂" },
@@ -287,6 +264,32 @@ function AnalyticsView() {
 function DashboardPage() {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const data = await getConversations();
+
+        setConversations(
+          data.map((conversation) => ({
+            id: conversation._id,
+            customer: conversation.customer,
+            initials: conversation.initials,
+            subject: conversation.subject,
+            preview: conversation.preview,
+            time: new Date(conversation.createdAt).toLocaleDateString(),
+            status: conversation.status,
+            channel: conversation.channel,
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to load conversations:", error);
+      }
+    };
+
+    void loadConversations();
+  }, []);
   const [activeItem, setActiveItem] = useState("Inbox");
   const [selectedId, setSelectedId] = useState<string | number>(1);
   const [reply, setReply] = useState("");
